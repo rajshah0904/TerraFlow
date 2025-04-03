@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from app.database import get_db
 from app.models import Trade
@@ -7,18 +7,21 @@ from pydantic import BaseModel
 router = APIRouter()
 
 class TradeCreate(BaseModel):
-    user_id: int
-    currency_pair: str
-    amount: float
-    rate: float
+    sender_id: int
+    recipient_id: int
+    stablecoin_amount: float
+    fiat_amount: float
+    conversion_rate: float
 
 @router.post("/")
 def create_trade(trade: TradeCreate, db: Session = Depends(get_db)):
+    # Create a new trade instance using the provided details.
     new_trade = Trade(
-        user_id = trade.user_id,
-        currency_pair = trade.currency_pair,
-        amount = trade.amount,
-        rate = trade.rate
+        sender_id=trade.sender_id,
+        recipient_id=trade.recipient_id,
+        stablecoin_amount=trade.stablecoin_amount,
+        fiat_amount=trade.fiat_amount,
+        conversion_rate=trade.conversion_rate
     )
     
     db.add(new_trade)
@@ -29,4 +32,3 @@ def create_trade(trade: TradeCreate, db: Session = Depends(get_db)):
 @router.get("/")
 def read_trades(db: Session = Depends(get_db)):
     return db.query(Trade).all()
-
